@@ -73,6 +73,40 @@ func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func updateArticle(w http.ResponseWriter, r *http.Request) {
+	// parse id from path parameter
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	// unmarshal article from request body to Article a
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var article Article
+	json.Unmarshal(reqBody, &article)
+
+	for i, a := range Articles {
+		if a.Id == id {
+			Articles[i] = article
+		}
+	}
+	fmt.Println("Endpoint Hit: updateArticle")
+}
+
+func deleteArticle(w http.ResponseWriter, r *http.Request) {
+	// parse path parameters
+	vars := mux.Vars(r)
+	// extract the id of the article to delete
+	id := vars["id"]
+
+	// loop through all articles
+	for i, a := range Articles {
+		if a.Id == id {
+			// update Articles array to remove the article
+			Articles = append(Articles[:i], Articles[i+1:]...)
+		}
+	}
+	fmt.Println("Endpoint Hit: deleteArticle")
+}
+
 func handleRequests() {
 	// gorilla mux router
 	// create new instance of mux router
@@ -80,6 +114,8 @@ func handleRequests() {
 	r.HandleFunc("/", homePage)
 	r.HandleFunc("/articles", returnAllArticles)
 	r.HandleFunc("/article", createNewArticle).Methods("POST")
+	r.HandleFunc("/article/{id}", updateArticle).Methods("PUT")
+	r.HandleFunc("/article/{id}", deleteArticle).Methods("DELETE")
 	r.HandleFunc("/article/{id}", returnSingleArticle)
 	log.Fatal(http.ListenAndServe(":8080", r))
 
