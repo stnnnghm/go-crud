@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Global Article array to simulate DB
@@ -17,6 +19,8 @@ type Article struct {
 }
 
 func main() {
+	fmt.Println("Rest API v2.0 - Mux Router")
+
 	Articles = []Article{
 		Article{Title: "Hello", Desc: "Article Description", Content: "Article Content"},
 		Article{Title: "Goodbye", Desc: "Another Description", Content: "More Content"},
@@ -39,8 +43,15 @@ func returnAllArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
-	// Map API endpoints
-	http.HandleFunc("/", homePage)
-	http.HandleFunc("/articles", returnAllArticles)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// gorilla mux router
+	// create new instance of mux router
+	r := mux.NewRouter().StrictSlash(true)
+	r.HandleFunc("/", homePage)
+	r.HandleFunc("/articles", returnAllArticles)
+	log.Fatal(http.ListenAndServe(":8080", r))
+
+	// net/http router
+	// http.HandleFunc("/", homePage)
+	// http.HandleFunc("/articles", returnAllArticles)
+	// log.Fatal(http.ListenAndServe(":8080", nil))
 }
