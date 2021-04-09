@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -23,8 +24,8 @@ func main() {
 	fmt.Println("Rest API v2.0 - Mux Router")
 
 	Articles = []Article{
-		Article{Id: "1", Title: "Hello", Desc: "Article Description", Content: "Article Content"},
-		Article{Id: "2", Title: "Goodbye", Desc: "Another Description", Content: "More Content"},
+		{Id: "1", Title: "Hello", Desc: "Article Description", Content: "Article Content"},
+		{Id: "2", Title: "Goodbye", Desc: "Another Description", Content: "More Content"},
 	}
 
 	// Could also:
@@ -36,6 +37,20 @@ func main() {
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome home!")
 	fmt.Println("Endpoint Hit: homePage")
+}
+
+func createNewArticle(w http.ResponseWriter, r *http.Request) {
+	// get POST body from request
+	// unmarshal this into new Article struct
+	// append this to Articles array
+	reqBody, _ := ioutil.ReadAll(r.Body)
+
+	var article Article
+	json.Unmarshal(reqBody, &article)
+	Articles = append(Articles, article)
+	json.NewEncoder(w).Encode(article)
+
+	fmt.Println("Endpoint Hit: createNewArticle")
 }
 
 func returnAllArticles(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +79,7 @@ func handleRequests() {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", homePage)
 	r.HandleFunc("/articles", returnAllArticles)
+	r.HandleFunc("/article", createNewArticle).Methods("POST")
 	r.HandleFunc("/article/{id}", returnSingleArticle)
 	log.Fatal(http.ListenAndServe(":8080", r))
 
